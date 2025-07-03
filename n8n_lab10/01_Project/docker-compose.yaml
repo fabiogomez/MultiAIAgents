@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n_database
+      - DB_POSTGRESDB_USER=n8n_user
+      - DB_POSTGRESDB_PASSWORD=your_n8n_db_password # ¡CAMBIA ESTO!
+      - N8N_BASIC_AUTH_ACTIVE=true # Activa la autenticación básica
+      - N8N_BASIC_AUTH_USER=n8n_admin # ¡CAMBIA ESTO!
+      - N8N_BASIC_AUTH_PASSWORD=your_n8n_admin_password # ¡CAMBIA ESTO!
+      - N8N_EDITOR_BASE_URL=http://localhost:5678/ # Ajusta si usas un dominio diferente
+      # Para producción, considera HTTPS y un dominio real:
+      # - N8N_EDITOR_BASE_URL=https://your.domain.com/
+      # - WEBHOOK_URL=https://your.domain.com/
+    volumes:
+      # Almacena datos persistentes de n8n (claves SSH, etc.)
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_DB=n8n_database
+      - POSTGRES_USER=n8n_user
+      - POSTGRES_PASSWORD=your_n8n_db_password # ¡DEBE COINCIDIR CON n8n!
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com # ¡CAMBIA ESTO!
+      - PGADMIN_DEFAULT_PASSWORD=your_pgadmin_password # ¡CAMBIA ESTO!
+    ports:
+      - "8080:80" # Puedes cambiar el puerto si 8080 ya está en uso
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  n8n_data:
+  postgres_data:
+  pgadmin_data:
